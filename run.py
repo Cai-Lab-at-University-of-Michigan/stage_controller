@@ -1,12 +1,8 @@
 import stage_control
-import sys
 import Gamepad
 import time
-import tqdm
 
-import serial
 import flask
-from flask import request
 import threading
 
 ###################################################
@@ -172,7 +168,7 @@ def reset_galvo(id):
 
 @flask_app.route("/upload_wavetable/<id>", methods=["POST"])
 def upload_wavetable(id):
-    file = request.files["file"]  # Access the uploaded file
+    file = flask.request.files["file"]  # Access the uploaded file
     file = file.read()
     file = file.strip().split(b",")
     profile = [int(x, 16) for x in file]
@@ -189,7 +185,7 @@ def upload_wavetable(id):
 
 @flask_app.route("/upload_aotf/<id>", methods=["POST"])
 def upload_aotf(id):
-    file = request.files["file"]  # Access the uploaded file
+    file = flask.request.files["file"]  # Access the uploaded file
     file = file.read()
     file = file.strip()  # EX: b'YYYYNNNNYYYYY'
 
