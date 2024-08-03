@@ -103,14 +103,14 @@ class TriggerControl:
 
     def is_done(self):
         while True:
-            print('wait')
+            print("wait")
             rv = self._serial.readline().strip()
             if len(rv) > 0:
-                print('done')
-                return rv == b'D'
+                print("done")
+                return rv == b"D"
 
     def send_trigger(self, channel=None, frames=1000, stage=True, notify=False):
-        print('here')
+        print("here")
         payload = b"T"
 
         # Specify the channel
@@ -150,7 +150,7 @@ class DACControl:
         while True:
             rv = self._serial.readline().strip()
             if len(rv) > 0:
-                return rv == b'D'
+                return rv == b"D"
 
     def send_table(self, wavetable, key=b"S", byte_depth=2):
         payload = key + b"".join(
@@ -158,9 +158,9 @@ class DACControl:
         )
         with self._serial_mutex:
             sent = self._serial.write(payload)
-            print(f'Sent {sent} bytes')
+            print(f"Sent {sent} bytes")
             return self.is_done()
-            
+
     def send_wavetable(self):
         return self.send_table(self.DAC_table, key=b"S", byte_depth=2)
 

@@ -38,7 +38,11 @@ DAC_devs = {
     642: "/dev/serial/by-id/usb-Raspberry_Pi_Pico_E660C0D1C75B8324-if00",
 }
 
-DAC_tables = {488: "488.txt", 560: "560.txt", 642: "642.txt"}
+DAC_tables = {
+    488: "galvo_tables/488.txt",
+    560: "galvo_tables/560.txt",
+    642: "galvo_tables/642.txt",
+}
 
 DAC_handles = {
     k: stage_control.DACControl(v, 115200, 1, DAC_tables[k])

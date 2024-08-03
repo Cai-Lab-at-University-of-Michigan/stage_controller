@@ -18,10 +18,12 @@ import time
 import threading
 import inspect
 
-def available(joystickNumber = 0):
+
+def available(joystickNumber=0):
     """Check if a joystick is connected and ready to use."""
-    joystickPath = '/dev/input/js' + str(joystickNumber)
+    joystickPath = "/dev/input/js" + str(joystickNumber)
     return os.path.exists(joystickPath)
+
 
 class Gamepad:
     EVENT_CODE_BUTTON = 0x01
@@ -30,20 +32,24 @@ class Gamepad:
     EVENT_CODE_INIT_AXIS = 0x80 | EVENT_CODE_AXIS
     MIN_AXIS = -32767.0
     MAX_AXIS = +32767.0
-    EVENT_BUTTON = 'BUTTON'
-    EVENT_AXIS = 'AXIS'
-    fullName = 'Generic (numbers only)'
+    EVENT_BUTTON = "BUTTON"
+    EVENT_AXIS = "AXIS"
+    fullName = "Generic (numbers only)"
 
     class UpdateThread(threading.Thread):
         """Thread used to continually run the updateState function on a Gamepad in the background
 
-        One of these is created by the Gamepad startBackgroundUpdates function and closed by stopBackgroundUpdates"""
+        One of these is created by the Gamepad startBackgroundUpdates function and closed by stopBackgroundUpdates
+        """
+
         def __init__(self, gamepad):
             threading.Thread.__init__(self)
             if isinstance(gamepad, Gamepad):
                 self.gamepad = gamepad
             else:
-                raise ValueError('Gamepad update thread was not created with a valid Gamepad object')
+                raise ValueError(
+                    "Gamepad update thread was not created with a valid Gamepad object"
+                )
             self.running = True
 
         def run(self):
@@ -56,21 +62,23 @@ class Gamepad:
                 self.gamepad = None
                 raise
 
-    def __init__(self, joystickNumber = 0):
+    def __init__(self, joystickNumber=0):
         self.joystickNumber = str(joystickNumber)
-        self.joystickPath = '/dev/input/js' + self.joystickNumber
+        self.joystickPath = "/dev/input/js" + self.joystickNumber
         retryCount = 5
         while True:
             try:
-                self.joystickFile = open(self.joystickPath, 'rb')
+                self.joystickFile = open(self.joystickPath, "rb")
                 break
             except IOError as e:
                 retryCount -= 1
                 if retryCount > 0:
                     time.sleep(0.5)
                 else:
-                    raise IOError('Could not open gamepad %s: %s' % (self.joystickNumber, str(e)))
-        self.eventSize = struct.calcsize('IhBB')
+                    raise IOError(
+                        "Could not open gamepad %s: %s" % (self.joystickNumber, str(e))
+                    )
+        self.eventSize = struct.calcsize("IhBB")
         self.pressedMap = {}
         self.wasPressedMap = {}
         self.wasReleasedMap = {}
@@ -110,14 +118,16 @@ class Gamepad:
                 rawEvent = self.joystickFile.read(self.eventSize)
             except IOError as e:
                 self.connected = False
-                raise IOError('Gamepad %s disconnected: %s' % (self.joystickNumber, str(e)))
+                raise IOError(
+                    "Gamepad %s disconnected: %s" % (self.joystickNumber, str(e))
+                )
             if rawEvent is None:
                 self.connected = False
-                raise IOError('Gamepad %s disconnected' % self.joystickNumber)
+                raise IOError("Gamepad %s disconnected" % self.joystickNumber)
             else:
-                return struct.unpack('IhBB', rawEvent)
+                return struct.unpack("IhBB", rawEvent)
         else:
-            raise IOError('Gamepad has been disconnected')
+            raise IOError("Gamepad has been disconnected")
 
     def _rawEventToDescription(self, event):
         """Decodes the raw event from getNextEventRaw into a formatted string."""
@@ -128,40 +138,53 @@ class Gamepad:
             else:
                 button = str(index)
             if value == 0:
-                return '%010u: Button %s released' % (timestamp, button)
+                return "%010u: Button %s released" % (timestamp, button)
             elif value == 1:
-                return '%010u: button %s pressed' % (timestamp, button)
+                return "%010u: button %s pressed" % (timestamp, button)
             else:
-                return '%010u: button %s state %i' % (timestamp, button, value)
+                return "%010u: button %s state %i" % (timestamp, button, value)
         elif eventType == Gamepad.EVENT_CODE_AXIS:
             if index in self.axisNames:
                 axis = self.axisNames[index]
             else:
                 axis = str(index)
             position = value / Gamepad.MAX_AXIS
-            return '%010u: Axis %s at %+06.1f %%' % (timestamp, axis, position * 100)
+            return "%010u: Axis %s at %+06.1f %%" % (timestamp, axis, position * 100)
         elif eventType == Gamepad.EVENT_CODE_INIT_BUTTON:
             if index in self.buttonNames:
                 button = self.buttonNames[index]
             else:
                 button = str(index)
             if value == 0:
-                return '%010u: Button %s initially released' % (timestamp, button)
+                return "%010u: Button %s initially released" % (timestamp, button)
             elif value == 1:
-                return '%010u: button %s initially pressed' % (timestamp, button)
+                return "%010u: button %s initially pressed" % (timestamp, button)
             else:
-                return '%010u: button %s initially state %i' % (timestamp, button, value)
+                return "%010u: button %s initially state %i" % (
+                    timestamp,
+                    button,
+                    value,
+                )
         elif eventType == Gamepad.EVENT_CODE_INIT_AXIS:
             if index in self.axisNames:
                 axis = self.axisNames[index]
             else:
                 axis = str(index)
             position = value / Gamepad.MAX_AXIS
-            return '%010u: Axis %s initially at %+06.1f %%' % (timestamp, axis, position * 100)
+            return "%010u: Axis %s initially at %+06.1f %%" % (
+                timestamp,
+                axis,
+                position * 100,
+            )
         else:
-            return '%010u: Unknown event %u, Index %u, Value %i' % (timestamp, eventType, index, value)
+            return "%010u: Unknown event %u, Index %u, Value %i" % (
+                timestamp,
+                eventType,
+                index,
+                value,
+            )
 
-    def getNextEvent(self, skipInit = True):
+    def getNextEvent(self, skipInit=True):
         """Returns the next event from the gamepad.
 
         The return format is:
@@ -285,14 +308,16 @@ class Gamepad:
             self.axisMap[index] = finalValue
             self.movedEventMap[index] = []
 
-    def startBackgroundUpdates(self, waitForReady = True):
+    def startBackgroundUpdates(self, waitForReady=True):
         """Starts a background thread which keeps the gamepad state updated automatically.
         This allows for asynchronous gamepad updates and event callback code.
 
         Do not use with getNextEvent"""
         if self.updateThread is not None:
             if self.updateThread.running:
-                raise RuntimeError('Called startBackgroundUpdates when the update thread is already running')
+                raise RuntimeError(
+                    "Called startBackgroundUpdates when the update thread is already running"
+                )
         self.updateThread = Gamepad.UpdateThread(self)
         self.updateThread.start()
         if waitForReady:
@@ -334,9 +359,9 @@ class Gamepad:
                 buttonIndex = int(buttonName)
             return self.pressedMap[buttonIndex]
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def beenPressed(self, buttonName):
         """Returns True if the button specified by name or index has been pressed since the last beenPressed call.
@@ -354,9 +379,9 @@ class Gamepad:
             else:
                 return False
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def beenReleased(self, buttonName):
         """Returns True if the button specified by name or index has been released since the last beenReleased call.
@@ -374,9 +399,9 @@ class Gamepad:
             else:
                 return False
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def axis(self, axisName):
         """Returns the last observed state of a gamepad axis specified by name or index.
@@ -392,9 +417,9 @@ class Gamepad:
                 axisIndex = int(axisName)
             return self.axisMap[axisIndex]
         except KeyError:
-            raise ValueError('Axis %i was not found' % axisIndex)
+            raise ValueError("Axis %i was not found" % axisIndex)
         except ValueError:
-            raise ValueError('Axis name %s was not found' % axisName)
+            raise ValueError("Axis name %s was not found" % axisName)
 
     def availableButtonNames(self):
         """Returns a list of available button names for this gamepad.
@@ -421,9 +446,9 @@ class Gamepad:
             if callback not in self.pressedEventMap[buttonIndex]:
                 self.pressedEventMap[buttonIndex].append(callback)
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def removeButtonPressedHandler(self, buttonName, callback):
         """Removes a callback for when a specific button specified by name or index is pressed."""
@@ -435,9 +460,9 @@ class Gamepad:
             if callback in self.pressedEventMap[buttonIndex]:
                 self.pressedEventMap[buttonIndex].remove(callback)
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def addButtonReleasedHandler(self, buttonName, callback):
         """Adds a callback for when a specific button specified by name or index is released.
@@ -450,9 +475,9 @@ class Gamepad:
             if callback not in self.releasedEventMap[buttonIndex]:
                 self.releasedEventMap[buttonIndex].append(callback)
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def removeButtonReleasedHandler(self, buttonName, callback):
         """Removes a callback for when a specific button specified by name or index is released."""
@@ -464,9 +489,9 @@ class Gamepad:
             if callback in self.releasedEventMap[buttonIndex]:
                 self.releasedEventMap[buttonIndex].remove(callback)
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def addButtonChangedHandler(self, buttonName, callback):
         """Adds a callback for when a specific button specified by name or index changes.
@@ -479,9 +504,9 @@ class Gamepad:
             if callback not in self.changedEventMap[buttonIndex]:
                 self.changedEventMap[buttonIndex].append(callback)
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def removeButtonChangedHandler(self, buttonName, callback):
         """Removes a callback for when a specific button specified by name or index changes."""
@@ -493,9 +518,9 @@ class Gamepad:
             if callback in self.changedEventMap[buttonIndex]:
                 self.changedEventMap[buttonIndex].remove(callback)
         except KeyError:
-            raise ValueError('Button %i was not found' % buttonIndex)
+            raise ValueError("Button %i was not found" % buttonIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % buttonName)
+            raise ValueError("Button name %s was not found" % buttonName)
 
     def addAxisMovedHandler(self, axisName, callback):
         """Adds a callback for when a specific axis specified by name or index changes.
@@ -508,9 +533,9 @@ class Gamepad:
             if callback not in self.movedEventMap[axisIndex]:
                 self.movedEventMap[axisIndex].append(callback)
         except KeyError:
-            raise ValueError('Button %i was not found' % axisIndex)
+            raise ValueError("Button %i was not found" % axisIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % axisName)
+            raise ValueError("Button name %s was not found" % axisName)
 
     def removeAxisMovedHandler(self, axisName, callback):
         """Removes a callback for when a specific axis specified by name or index changes."""
@@ -522,9 +547,9 @@ class Gamepad:
             if callback in self.movedEventMap[axisIndex]:
                 self.movedEventMap[axisIndex].remove(callback)
         except KeyError:
-            raise ValueError('Button %i was not found' % axisIndex)
+            raise ValueError("Button %i was not found" % axisIndex)
         except ValueError:
-            raise ValueError('Button name %s was not found' % axisName)
+            raise ValueError("Button name %s was not found" % axisName)
 
     def removeAllEventHandlers(self):
         """Removes all event handlers from all axes and buttons."""
@@ -540,6 +565,7 @@ class Gamepad:
         self.removeAllEventHandlers()
         self.stopBackgroundUpdates()
         del self.joystickFile
+
 
 ###########################
 # Import gamepad mappings #
@@ -570,47 +596,57 @@ if __name__ == "__main__":
         pass
 
     # ANSI colour code sequences
-    GREEN = '\033[0;32m'
-    CYAN = '\033[0;36m'
-    BLUE = '\033[1;34m'
-    RESET = '\033[0m'
+    GREEN = "\033[0;32m"
+    CYAN = "\033[0;36m"
+    BLUE = "\033[1;34m"
+    RESET = "\033[0m"
 
     # Ask for the gamepad to use
-    print('Gamepad axis and button events...')
-    print('Press CTRL+C to exit')
-    print('')
-    print('Available device names:')
-    formatString = '    ' + GREEN + '%s' + RESET + ' - ' + CYAN + '%s' + RESET
+    print("Gamepad axis and button events...")
+    print("Press CTRL+C to exit")
+    print("")
+    print("Available device names:")
+    formatString = "    " + GREEN + "%s" + RESET + " - " + CYAN + "%s" + RESET
     for device in deviceNames:
         print(formatString % (device, controllerDict[device.upper()].fullName))
-    print('')
-    print('What device name are you using (leave blank if not in the list)')
-    device = input('? ' + GREEN).strip().upper()
+    print("")
+    print("What device name are you using (leave blank if not in the list)")
+    device = input("? " + GREEN).strip().upper()
     print(RESET)
 
     # Wait for a connection
     if not available():
-        print('Please connect your gamepad...')
+        print("Please connect your gamepad...")
         while not available():
             time.sleep(1.0)
-    print('Gamepad connected')
+    print("Gamepad connected")
 
     # Pick the correct class
     if device in controllerDict:
         print(controllerDict[device].fullName)
         gamepad = controllerDict[device]()
-    elif device == '':
-        print('Unspecified gamepad')
-        print('')
+    elif device == "":
+        print("Unspecified gamepad")
+        print("")
         gamepad = Gamepad()
     else:
-        print('Unknown gamepad')
-        print('')
+        print("Unknown gamepad")
+        print("")
         sys.exit()
 
     # Display the event messages as they arrive
     while True:
         eventType, index, value = gamepad.getNextEvent()
-        print(BLUE + eventType + RESET + ',\t  ' +
-              GREEN + str(index) + RESET + ',\t' +
-              CYAN + str(value) + RESET)
+        print(
+            BLUE
+            + eventType
+            + RESET
+            + ",\t  "
+            + GREEN
+            + str(index)
+            + RESET
+            + ",\t"
+            + CYAN
+            + str(value)
+            + RESET
+        )
