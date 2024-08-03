@@ -5,13 +5,6 @@ import time
 import flask
 import threading
 
-import stage_control
-import Gamepad
-import time
-
-import flask
-import threading
-
 ###################################################
 # DEFINE STAGE VARIABLES
 ###################################################
