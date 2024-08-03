@@ -176,7 +176,7 @@ while True:
                         right_velocity_scale = 100
                     print("Scaling", right_velocity_scale)
                 elif control == "A":
-                    controller_handle.send_trigger(channel=None, frames=1, stage=False)
+                    pass
                 elif control == "RB":
                     for ax in right_channel_map.values():
                         stages[0].stop(ax)
@@ -187,7 +187,7 @@ while True:
                     stages[1].send_velocity(1, z_velocity_max)
                     stages[1].home(1)
                 elif control == "START":
-                    trigger_frame(cmd="S")
+                    pass
                 else:
                     print(eventType, control, value)
             else:
