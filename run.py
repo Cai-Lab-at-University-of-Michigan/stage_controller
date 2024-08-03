@@ -13,10 +13,10 @@ import threading
 # DEFINE STAGE VARIABLES
 ###################################################
 stages = [
-    stage_control.ESPStageControl(
+    stage_control.ESP302StageControl(
         "/dev/serial/by-path/pci-0000:00:14.0-usb-0:1.3:1.0-port0", 19200, 1
     ),
-    stage_control.ESPStageControl(
+    stage_control.ESP302StageControl(
         "/dev/serial/by-path/pci-0000:00:14.0-usb-0:1.2:1.0-port0", 19200, 1
     ),
 ]
