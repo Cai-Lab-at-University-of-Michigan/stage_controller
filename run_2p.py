@@ -123,6 +123,7 @@ while True:
 
         if eventType == "AXIS":
             if type(control) == int:
+                # 6 == dpad horizontal; 7 == dpad vertical
                 if control == 7:
                     value *= -1
                 if abs(value) < 0.01:  # eps
@@ -136,7 +137,6 @@ while True:
                         velocity = z_velocity_max / 10
                     stages[1].send_velocity(1, velocity)
                     stages[1].send_move_indefinite(1, direction)
-                # 6 == dpad horizontal; 7 == dpad vertical
             elif control == "LT":
                 pass
             elif control == "RT":
