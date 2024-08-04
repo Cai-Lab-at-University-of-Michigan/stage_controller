@@ -22,7 +22,7 @@ gamepadType = Gamepad.Xbox360
 
 deadzone = 0.01
 right_invert = {"X": False, "Y": True}
-right_channel_map = {"X": 1, "Y": 2}
+right_channel_map = {"X": "X", "Y": "Y"}
 right_velocity_max = 20
 right_velocity_scale = 100
 
@@ -121,41 +121,41 @@ while True:
             continue
 
         if eventType == "AXIS":
-            if type(control) == int:
+            if control == 6 or control == 7:  # z-axis
                 # 6 == dpad horizontal; 7 == dpad vertical
-                if control == 7:
-                    value *= -1
-                if abs(value) < 0.01:  # eps
-                    stages[1].stop(1)
+                ax, i = channel_map["Z"]
+                if abs(value) < deadzone:  # eps
+                    ax.stop(i)
                 else:
+                    value *= -1 if (control == 7) else 1
                     direction = "+" if value > 0 else "-"
-                    velocity = 0
-                    if control == 7:
-                        velocity = z_velocity_max
-                    elif control == 6:
-                        velocity = z_velocity_max / 10
-                    stages[1].send_velocity(1, velocity)
-                    stages[1].send_move_indefinite(1, direction)
+                    velocity = (
+                        z_velocity_max if (control == 6) else (z_velocity_max / 10)
+                    )
+
+                    ax.send_velocity(i, velocity)
+                    ax.send_move_indefinite(i, direction)
             elif control == "LT":
                 pass
             elif control == "RT":
                 pass
             elif control.startswith("RIGHT-") or control.startswith("LEFT-"):
-                left = "LEFT" in control
-                ax = control.replace("RIGHT-", "").replace("LEFT-", "")
-                value *= -1 if right_invert[ax] else 1
+                is_left = control.startswith("LEFT")
+                ax = control.split('-')[1]
                 ax = right_channel_map[ax]
+                ax, i = channel_map[ax]
 
                 if abs(value) < deadzone:
                     stages[0].stop(ax)
                     # print("Stopping Axis")
                 else:
-                    velocity = right_velocity_scale * right_velocity_max * value / 100
-                    velocity *= 0.04 if left else 1.0
-                    direction = "+" if (velocity > 0) else "-"
-                    velocity = abs(velocity)
+                    value *= right_velocity_scale * right_velocity_max / 100.0
+                    value *= 0.04 if is_left else 1.0
+                    value *= -1 if right_invert[ax] else 1
 
-                    stages[0].send_velocity(ax, velocity)
+                    direction = "+" if (value > 0) else "-"
+
+                    stages[0].send_velocity(ax, abs(value))
                     stages[0].send_move_indefinite(ax, direction)
                     # print("New Velocity:", velocity)
             else:
