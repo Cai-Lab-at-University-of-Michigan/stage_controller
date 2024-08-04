@@ -35,8 +35,7 @@ gamepad_disable = False
 # FLASK API
 ###################################################
 CHANNEL_COUNT = 3
-channel_map = {1: (stages[0], 0), 2: (stages[0], 1), 3: (stages[0], 2)}
-axis_map = {"z": 1, "x": 2, "y": 3}
+channel_map = {"X": (stages[0], 1), "Y": (stages[0], 2), "Z": (stages[0], 3)}
 
 flask_app = flask.Flask("FLASK_API")
 
@@ -161,35 +160,36 @@ while True:
                     # print("New Velocity:", velocity)
             else:
                 print(eventType, control, value)
+
         if eventType == "BUTTON":
             if value:
-                if control == "Y":
-                    for ax in right_channel_map.values():
-                        stages[0].send_enable_axis(0)
-                elif control == "X":
-                    stages[0].stop(1)
-                    stages[0].stop(2)
-                    stages[1].stop(1)
-                elif control == "B":
-                    right_velocity_scale -= 20
-                    if right_velocity_scale == 0:
-                        right_velocity_scale = 100
-                    print("Scaling", right_velocity_scale)
-                elif control == "A":
-                    pass
-                elif control == "RB":
-                    for ax in right_channel_map.values():
-                        stages[0].stop(ax)
-                        stages[0].send_velocity(ax, right_velocity_max)
-                        stages[0].home(ax)
-                elif control == "LB":
-                    stages[1].stop(1)
-                    stages[1].send_velocity(1, z_velocity_max)
-                    stages[1].home(1)
-                elif control == "START":
-                    pass
-                else:
-                    print(eventType, control, value)
+                match control:
+                    case "Y":
+                        for ax, i in channel_map.values():
+                            ax.send_enable_axis(i)
+                    case "X":
+                        for ax, i in channel_map.values():
+                            ax.stop(i)
+                    case "B":
+                        right_velocity_scale -= 20
+                        if right_velocity_scale == 0:
+                            right_velocity_scale = 100
+                        print("Scaling", right_velocity_scale)
+                    case "A":
+                        pass
+                    case "RB":
+                        ax, i = channel_map["Z"]
+                        ax.stop(i)
+                        ax.send_velocity(i, z_velocity_max)
+                        ax.home(i)
+                    case "LB":
+                        for c in ["X", "Y"]:
+                            ax, i = channel_map[c]
+                            ax.stop(i)
+                            ax.send_velocity(i, right_velocity_max)
+                            ax.home(i)
+                    case "START":
+                        pass
             else:
                 pass
 
